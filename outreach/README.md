@@ -10,7 +10,7 @@ Conveyancers and letting agents have separate sequences under `drips/`. Do not u
 
 Before any send:
 
-1. Fill every `{{PLACEHOLDER}}`. Search the draft for `{{` and stop if any remain.
+1. Fill every braced placeholder. Search the draft for `{{` and stop if any remain. The full list is `compliance/PLACEHOLDERS.md`.
 2. Confirm `{{OPT_OUT_URL}}` works and `{{PRIVACY_NOTICE_URL}}` opens a real notice. See `compliance/privacy_notice_line.md`.
 3. Confirm the firm is `limited_company` or `llp` on Companies House. See `data/firm_list_README.md`.
 4. Run `python -m compliance.suppression pre-send-check` for that address and status. Send only if it prints `allowed=yes`.

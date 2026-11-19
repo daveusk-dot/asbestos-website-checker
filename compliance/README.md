@@ -9,7 +9,7 @@ Templates and checks for UK B2B email. Nothing here sends email, and nothing her
 | `source_line.md` | The Article 14 "where we obtained your details" line |
 | `email_footer.md` | The block every marketing email ends with |
 | `suppression.py` | Append-only suppression list and pre-send check |
-| `PLACEHOLDERS.md` | Every `{{PLACEHOLDER}}` still to be filled |
+| `PLACEHOLDERS.md` | Every braced placeholder still to be filled |
 
 The live suppression file is `data/suppression_list.csv`. It is header-only until a real opt-out is recorded.
 
