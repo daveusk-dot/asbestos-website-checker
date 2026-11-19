@@ -1,0 +1,4 @@
+tier,price,vat_treatment,billing_basis,contract_length,notice_period,cancellation_fee,renewal_terms,refund_terms,status
+Foundation,{{PRICE_FOUNDATION}},{{VAT_TREATMENT}},{{BILLING_BASIS_FOUNDATION}},{{CONTRACT_LENGTH_FOUNDATION}},{{NOTICE_PERIOD}},{{CANCELLATION_FEE}},{{RENEWAL_TERMS}},{{REFUND_TERMS}},draft_for_david_to_confirm
+Visibility,{{PRICE_VISIBILITY}},{{VAT_TREATMENT}},{{BILLING_BASIS_VISIBILITY}},{{CONTRACT_LENGTH_VISIBILITY}},{{NOTICE_PERIOD}},{{CANCELLATION_FEE}},{{RENEWAL_TERMS}},{{REFUND_TERMS}},draft_for_david_to_confirm
+Demand,{{PRICE_DEMAND}},{{VAT_TREATMENT}},{{BILLING_BASIS_DEMAND}},{{CONTRACT_LENGTH_DEMAND}},{{NOTICE_PERIOD}},{{CANCELLATION_FEE}},{{RENEWAL_TERMS}},{{REFUND_TERMS}},draft_for_david_to_confirm
