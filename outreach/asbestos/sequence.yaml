@@ -1,0 +1,43 @@
+schema_version: 1
+id: asbestos-cold-outreach
+audience: UKAS or ATaC accredited asbestos firms
+sends_automatically: false
+day_offsets_are_suggestions: true
+requires_real_finding_before_start: true
+allowed_legal_status:
+  - limited_company
+  - llp
+excluded_legal_status:
+  - sole_trader
+  - ordinary_partnership
+  - unknown
+stop_on:
+  - reply
+  - opt_out
+on_reply: >
+  Stop the sequence immediately, including when the reply is an out-of-office
+  message. If they asked for the summary, send the summary and nothing
+  further from this sequence. If they asked not to be contacted, treat the
+  reply as an opt-out.
+on_opt_out: append_to_suppression_list
+suppression_list: data/suppression_list.csv
+pre_send_check: compliance.suppression.pre_send_check
+also_suppress:
+  - hard_bounce
+  - complaint
+emails:
+  - id: asb-01-initial
+    day_offset: 0
+    requires_audit_finding: true
+    subject: "A point on {{FIRM_NAME}}'s website"
+    body_file: 01-initial.md
+  - id: asb-02-follow-up
+    day_offset: 5
+    requires_audit_finding: true
+    subject: "Re: {{FIRM_NAME}}'s website"
+    body_file: 02-follow-up.md
+  - id: asb-03-final
+    day_offset: 12
+    requires_audit_finding: false
+    subject: "Last note on the {{FIRM_NAME}} website audit"
+    body_file: 03-final.md
