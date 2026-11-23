@@ -1,0 +1,47 @@
+{
+  "id": "asbestos_surveying",
+  "label": "Asbestos surveying",
+  "key_page_patterns": ["survey", "service", "removal", "testing", "inspection", "sampling", "asbestos"],
+  "accreditation": {
+    "ukas_terms": ["ukas"],
+    "trade_bodies": [
+      {"id": "atac", "label": "ATaC", "patterns": ["atac", "asbestos testing and consultancy"]},
+      {"id": "arca", "label": "ARCA", "patterns": ["arca", "asbestos removal contractors association"]},
+      {"id": "bohs", "label": "BOHS", "patterns": ["bohs", "p402"]}
+    ],
+    "hse_terms": [
+      "hse licence",
+      "hse license",
+      "licensed by the hse",
+      "hse-licensed",
+      "hse licensed",
+      "asbestos licence",
+      "asbestos license"
+    ],
+    "standards": [
+      "iso/iec 17020",
+      "iso 17020",
+      "iso/iec 17025",
+      "iso 17025",
+      "bs en iso/iec 17020",
+      "bs en iso/iec 17025"
+    ],
+    "general_schemes": ["chas", "safecontractor", "safe contractor", "constructionline", "trustmark"]
+  },
+  "terminology": {
+    "current": [
+      "hsg264",
+      "hsg 264",
+      "management survey",
+      "refurbishment and demolition",
+      "refurbishment & demolition",
+      "refurbishment survey",
+      "demolition survey"
+    ],
+    "outdated_patterns": ["\\btype\\s*2\\b", "\\btype\\s*3\\b", "\\btype\\s*two\\b", "\\btype\\s*three\\b"]
+  },
+  "service_conflict": {
+    "removal": ["asbestos removal", "removal of asbestos", "licensed removal"],
+    "survey_only": ["survey only", "surveys only", "surveys-only"]
+  }
+}

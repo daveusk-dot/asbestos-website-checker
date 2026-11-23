@@ -8,7 +8,13 @@ The test is a manual process. This repository does not build the list, does not 
 
 1. **Build the list from public directories.** Take asbestos firms only, from UKAS and ATaC directories you have actually opened. Record `firm_name`, `website`, `source_directory`, and a published work contact. Do not buy a list and do not guess an email address. Stop at 20 slots. Leave a slot unused rather than padding it.
 2. **Check legal status at Companies House.** Fill `legal_status` with `limited_company`, `llp`, `sole_trader`, `ordinary_partnership`, or `unknown`, using the rules in `firm_list_README.md`. Sole traders, ordinary partnerships, and unknown status are excluded from cold email under this project's PECR rule. Set `eligible_for_cold_email` to `no` for those rows. Do not invent a company number.
-3. **Run the checker.** Use the existing `checker.py` against `website`. Do not change the checker to produce a score. It prints `total_warnings`.
+3. **Run the checker** on a working copy of this sheet, not on the empty file in the repository:
+
+   ```bash
+   python checker.py --batch path/to/your-tracker.csv --max-pages 15
+   ```
+
+   Reports are written to `reports/` (gitignored): one JSON file and one markdown summary per firm. An updated copy of the sheet, with `audit_run_date` and `audit_score` filled, is written beside them. The source CSV is not modified. `audit_score` is a mark out of 100. The rubric is in the README. Set `AUDIT_CONTACT` to a real address before a crawl of someone else's site so the user agent names you.
 4. **Review the output by hand.** Set `manual_review_done` to `yes` only after a person has read the warnings. Correct anything the checker overstated before it is written into an email. Set `audit_run_date` to the date of the crawl (`YYYY-MM-DD`).
 5. **Check suppression.** Run `python -m compliance.suppression pre-send-check` with the work address and the legal status. If it does not print `allowed=yes`, do not send. Set `eligible_for_cold_email` to `no` and record the reason in `notes`.
 6. **Send by hand.** Only for rows that passed step 5, and only with a template from `outreach/asbestos/` whose placeholders are filled, including one real finding. Put the send date in `sent_date`. This repository has no send command.
@@ -28,7 +34,7 @@ The test is a manual process. This repository does not build the list, does not 
 | `legal_status` | From Companies House. See the allowed values in `firm_list_README.md`. |
 | `eligible_for_cold_email` | `yes` or `no` after the pre-send check. Blank means not checked. A `yes` does not replace running the check again at send time. |
 | `audit_run_date` | Date the checker was run. |
-| `audit_score` | Put `total_warnings` from the checker here unless a different figure is defined later. The checker does not calculate a score. |
+| `audit_score` | The 0–100 score from the checker. The rubric is in the README. Blank until the checker has been run. |
 | `manual_review_done` | `yes` or `no`. |
 | `sent_date` | Date the first email was actually sent. Blank if not sent. |
 | `opens` | Leave blank. |
