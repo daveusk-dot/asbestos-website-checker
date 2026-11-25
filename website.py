@@ -27,7 +27,8 @@ def normalise_url(url):
 
 
 class Website:
-    def __init__(self, start_url, max_pages=20, delay=0.5, respect_robots=True):
+    def __init__(self, start_url, max_pages=20, delay=0.5, respect_robots=True, niche=None):
+        self.niche = niche
         self.start_url = normalise_url(start_url)
         self.base_domain = normalise_host(urlparse(start_url).netloc)
         self.max_pages = max_pages
@@ -101,7 +102,7 @@ class Website:
                 self.skipped.append((url, f"content type {content_type or 'unknown'}"))
                 continue
 
-            page = Page(resp.url, self.base_domain)
+            page = Page(resp.url, self.base_domain, niche=self.niche)
             page.analyze(resp.text)
             self.crawled[url] = page
 

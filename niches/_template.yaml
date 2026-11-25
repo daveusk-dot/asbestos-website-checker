@@ -1,0 +1,39 @@
+# Template for a new niche. Copy this file to niches/<your-niche>.yaml and edit.
+# Files starting with "_" are ignored by --list-niches.
+# Every section is optional; leave out what does not apply.
+# Words and phrases are matched case-insensitively, as whole words; hyphens count as spaces.
+name: Example trade (e.g. Damp proofing)
+
+# Page length / title rules. Defaults shown.
+thresholds:
+  title_min: 10
+  title_max: 70
+  description_min: 50
+  description_max: 160
+  thin_content_words: 150
+
+# Accreditations / memberships a firm in this trade would normally show.
+# Check the real names with the relevant trade body before you list them.
+trust_marks:
+  label: accreditation
+  strong: [example trade body member]   # clear claims
+  weak: [example trade body]            # bare names that are only a hint
+  advice_missing: Show your memberships on every service page. Only state what you actually hold.
+  advice_weak: Use specific wording such as "member of Example Trade Body".
+
+# Things a good site in this trade should mention somewhere on each page.
+required_mentions:
+  - id: guarantee
+    label: Guarantees / warranties
+    terms: [guarantee, guaranteed, warranty]
+    advice: Say what guarantee or warranty comes with the work.
+
+# Wording that would confuse visitors if both appear on the same page:
+# flagged when any phrase in "a" AND any phrase in "b" appear together.
+conflicts:
+  - id: services
+    label: Conflicting service description
+    message: Possible conflicting service wording
+    a: [we do x]
+    b: [x only by referral]
+    advice: Make it clear which services you offer.

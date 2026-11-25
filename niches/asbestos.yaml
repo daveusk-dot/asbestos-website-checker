@@ -1,0 +1,38 @@
+# Asbestos surveys, testing and removal.
+# Edit this file to change what the checker looks for; no code changes needed.
+name: Asbestos surveys and removal
+
+trust_marks:
+  label: accreditation
+  # Wording that clearly states a claim
+  strong:
+    - ukas accredited
+    - ukas laboratory
+    - arca member
+    - member of arca
+    - bohs certified
+    - hse licensed
+    - licensed asbestos
+    - licensed by the hse
+  # Names that only hint at one (a bare logo name or acronym)
+  weak: [ukas, arca, bohs, iosh, chas, safecontractor, hse]
+  advice_missing: >-
+    Show your accreditations and memberships (e.g. UKAS, ARCA, BOHS) consistently on every service page.
+    Only state accreditations or licences you actually hold.
+  advice_weak: >-
+    Use specific wording such as "UKAS accredited laboratory reports" or "ARCA member",
+    but only where it is true for your business.
+
+required_mentions:
+  - id: insurance
+    label: Insurance / public liability
+    terms: [insurance, insured, public liability, indemnity]
+    advice: Add a short "Fully insured - Public Liability cover" line to service and location pages.
+
+conflicts:
+  - id: services
+    label: Conflicting service description
+    message: Possible conflicting service wording (removal vs survey only)
+    a: [asbestos removal]
+    b: [survey only, surveys only]
+    advice: Make it clear whether removal is offered or surveys only; avoid mixing both on one page.

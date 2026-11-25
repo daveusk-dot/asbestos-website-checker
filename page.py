@@ -4,6 +4,8 @@ from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
 
+from niche import Niche
+
 
 def normalise_host(netloc):
     """Treat www.example.com and example.com as the same site."""
@@ -18,14 +20,6 @@ PHONE_RE = re.compile(
 EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 POSTCODE_RE = re.compile(r"\b[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}\b")
 
-STRONG_ACCREDITATIONS = [
-    "ukas accredited", "ukas laboratory", "arca member", "member of arca",
-    "bohs certified", "hse licensed", "licensed asbestos", "licensed by the hse",
-]
-WEAK_ACCREDITATIONS = ["ukas", "arca", "bohs", "iosh", "chas", "safecontractor", "hse"]
-
-INSURANCE_TERMS = ["insurance", "insured", "public liability", "indemnity"]
-
 LOCAL_SCHEMA_TYPES = ("LocalBusiness", "Organization", "ProfessionalService", "HomeAndConstructionBusiness")
 
 
@@ -34,10 +28,12 @@ def _has_word(text, phrase):
 
 
 class Page:
-    def __init__(self, url, base_domain):
+    def __init__(self, url, base_domain, niche=None):
         self.url = url
         self.base_domain = normalise_host(base_domain)
-        self.issues = []   # list of {"code": ..., "message": ...}
+        self.niche = niche or Niche()
+        # list of {"code", "message"} plus optional "headline"/"advice" for niche-specific checks
+        self.issues = []
         self.links = []
         self.title = ""
         self.meta_description = ""
@@ -53,8 +49,13 @@ class Page:
         """Plain-text warnings (kept for backwards compatibility)."""
         return [i["message"] for i in self.issues]
 
-    def _warn(self, code, message):
-        self.issues.append({"code": code, "message": message})
+    def _warn(self, code, message, headline=None, advice=None):
+        issue = {"code": code, "message": message}
+        if headline:
+            issue["headline"] = headline
+        if advice:
+            issue["advice"] = advice
+        self.issues.append(issue)
 
     def analyze(self, html):
         soup = BeautifulSoup(html, "html.parser")
@@ -85,18 +86,21 @@ class Page:
                 if clean not in self.links:
                     self.links.append(clean)
 
+        th = self.niche.thresholds
+
         # --- Title / meta description / headings ----------------------------
         if not self.title:
             self._warn("title_missing", "Missing title")
-        elif len(self.title) < 10 or len(self.title) > 70:
+        elif len(self.title) < th.title_min or len(self.title) > th.title_max:
             self._warn("title_length", f"Title length issue ({len(self.title)} chars): {self.title}")
 
         if not self.meta_description:
             self._warn("meta_description_missing", "Missing meta description")
-        elif len(self.meta_description) < 50 or len(self.meta_description) > 160:
+        elif len(self.meta_description) < th.description_min or len(self.meta_description) > th.description_max:
             self._warn(
                 "meta_description_length",
-                f"Meta description length issue ({len(self.meta_description)} chars, aim for 50-160)",
+                f"Meta description length issue ({len(self.meta_description)} chars, "
+                f"aim for {th.description_min}-{th.description_max})",
             )
 
         h1s = soup.find_all("h1")
@@ -116,7 +120,7 @@ class Page:
         if missing_alt:
             self._warn("images_no_alt", f"{len(missing_alt)} of {len(imgs)} images have no alt attribute")
 
-        if self.word_count < 150:
+        if self.word_count < th.thin_content_words:
             self._warn("thin_content", f"Thin content ({self.word_count} words)")
 
         # --- Contact signals ---------------------------------------------
@@ -132,23 +136,38 @@ class Page:
             else:
                 self._warn("no_contact", "No obvious contact details found")
 
-        # --- Trust signals --------------------------------------------------
-        has_strong = any(_has_word(match_text, a) for a in STRONG_ACCREDITATIONS)
-        has_weak = any(_has_word(match_text, a) for a in WEAK_ACCREDITATIONS)
-        if not has_weak:
-            self._warn("no_accreditation", "No accreditation or trust mark mentioned (UKAS, ARCA, BOHS, etc.)")
-        elif not has_strong:
-            self._warn(
-                "weak_accreditation",
-                "Accreditation mentioned but wording is weak (prefer 'UKAS accredited' or 'ARCA member')",
-            )
+        # --- Niche-specific checks (all driven by niches/<name>.yaml) --------
+        tm = self.niche.trust_marks
+        if tm:
+            has_strong = any(_has_word(match_text, t) for t in tm.strong)
+            has_any = has_strong or any(_has_word(match_text, t) for t in tm.weak)
+            if not has_any:
+                self._warn(
+                    "no_accreditation",
+                    f"No {tm.label} or trust mark mentioned",
+                    headline=f"No {tm.label} or trust marks shown",
+                    advice=tm.advice_missing,
+                )
+            elif not has_strong and tm.strong:
+                self._warn(
+                    "weak_accreditation",
+                    f"{tm.label.capitalize()} mentioned but wording is weak",
+                    headline=f"{tm.label.capitalize()} wording is weak",
+                    advice=tm.advice_weak,
+                )
 
-        if not any(_has_word(match_text, t) for t in INSURANCE_TERMS):
-            self._warn("no_insurance", "No mention of insurance or public liability")
+        for rm in self.niche.required_mentions:
+            if not any(_has_word(match_text, t) for t in rm.terms):
+                self._warn(
+                    f"no_{rm.id}",
+                    f"No mention of: {rm.label}",
+                    headline=f"{rm.label} not mentioned",
+                    advice=rm.advice,
+                )
 
-        # --- Content consistency ------------------------------------------
-        if "asbestos removal" in self.text and ("survey only" in self.text or "surveys only" in self.text):
-            self._warn("conflicting_services", "Possible conflicting service wording (removal vs survey only)")
+        for c in self.niche.conflicts:
+            if any(t in match_text for t in c.a) and any(t in match_text for t in c.b):
+                self._warn(f"conflict_{c.id}", c.message, headline=c.label, advice=c.advice)
 
         # --- Structured data -----------------------------------------------
         for block in json_ld_blocks:

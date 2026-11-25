@@ -2,20 +2,10 @@
 from datetime import date
 from urllib.parse import urlparse
 
-# Issue code -> (finding headline, quick-win advice). Order = order in the report.
+# Generic issue code -> (finding headline, quick-win advice). Order = order in the report.
+# Niche-specific findings (trust marks, required mentions, conflicting wording) carry their own
+# headline and advice, taken from the niche config, and are listed before these.
 FINDINGS = [
-    ("no_insurance",
-     "Insurance / public liability not mentioned",
-     "Add a short \"Fully insured - Public Liability cover\" line to service and location pages."),
-    ("no_accreditation",
-     "No accreditation or trust marks shown",
-     "Show your accreditations (e.g. UKAS, ARCA, BOHS) consistently on every service page."),
-    ("weak_accreditation",
-     "Accreditation wording is weak",
-     "Use specific wording such as \"UKAS accredited laboratory reports\" or \"ARCA member\"."),
-    ("conflicting_services",
-     "Conflicting service description",
-     "Make it clear whether removal is offered or surveys only; avoid mixing both on one page."),
     ("no_contact",
      "No contact details",
      "Put a phone number and email address in the header or footer of every page."),
@@ -32,14 +22,14 @@ FINDINGS = [
      "Contact form missing key fields",
      "Include at least name, a way to reply, and a message box."),
     ("title_missing", "Missing page title", "Give every page a unique, descriptive title."),
-    ("title_length", "Page title too short or too long", "Keep titles to roughly 10-70 characters."),
+    ("title_length", "Page title too short or too long", "Keep titles to a sensible length (under about 70 characters)."),
     ("meta_description_missing", "Missing meta description",
-     "Write a 50-160 character description for each page."),
+     "Write a short, unique description (about 50-160 characters) for each page."),
     ("meta_description_length", "Meta description too short or too long",
-     "Keep descriptions to 50-160 characters."),
+     "Keep descriptions to roughly 50-160 characters."),
     ("h1_missing", "Missing H1 heading", "Give each page one clear H1 heading."),
     ("h1_multiple", "Multiple H1 headings", "Use a single H1 per page."),
-    ("thin_content", "Thin content", "Expand pages with under ~150 words, or merge them."),
+    ("thin_content", "Thin content", "Expand thin pages with useful detail, or merge them."),
     ("images_no_alt", "Images without alt text", "Add short descriptive alt text to images."),
     ("viewport_missing", "No mobile viewport tag", "Add a viewport meta tag so the site renders properly on phones."),
     ("canonical_missing", "No canonical tag", "Add canonical tags to avoid duplicate-page confusion."),
@@ -83,20 +73,30 @@ def build_markdown(summary):
     pages = summary["pages"]
     total = len(pages)
 
-    # code -> list of page urls affected
+    # code -> list of page urls affected, and the first issue seen for each code
     affected = {}
+    first_issue = {}
     for p in pages:
         for issue in p.get("issues", []):
             affected.setdefault(issue["code"], []).append(p["url"])
+            first_issue.setdefault(issue["code"], issue)
+
+    generic = {code: (headline, advice) for code, headline, advice in FINDINGS}
+    niche_codes = [c for c in affected if c not in generic]
+    ordered_codes = niche_codes + [c for c, _, _ in FINDINGS]
 
     findings = []   # (headline, detail, advice)
-    for code, headline, advice in FINDINGS:
+    for code in ordered_codes:
         urls = affected.get(code)
         if not urls:
             continue
+        issue = first_issue[code]
+        default_headline, default_advice = generic.get(code, (issue["message"], ""))
+        headline = issue.get("headline") or default_headline
+        advice = issue.get("advice") or default_advice
         detail = f"Seen on {_format_pages(urls, total)}"
         if code == "no_accreditation" and len(urls) < total:
-            headline = "Accreditation shown inconsistently"
+            headline = "Trust marks shown inconsistently"
             detail = f"Missing on {_format_pages(urls, total)}; shown elsewhere"
         if code == "title_length":
             examples = [i["message"] for p in pages for i in p["issues"] if i["code"] == code][:3]
@@ -113,6 +113,10 @@ def build_markdown(summary):
 
     lines = [
         "# Quick Website Audit Summary",
+    ]
+    if summary.get("business"):
+        lines.append(f"**Business:** {summary['business']}  ")
+    lines += [
         f"**Site:** {summary['start_url']}  ",
         f"**Pages checked:** {total}  ",
         f"**Date:** {_pretty_date(summary.get('date'))}",
@@ -135,7 +139,7 @@ def build_markdown(summary):
         lines += ["", "## Quick wins"]
         seen = set()
         for _, _, advice in findings:
-            if advice not in seen:
+            if advice and advice not in seen:
                 seen.add(advice)
                 lines.append(f"- {advice}")
 
